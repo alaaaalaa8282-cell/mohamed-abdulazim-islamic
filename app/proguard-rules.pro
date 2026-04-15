@@ -1,0 +1,3 @@
+-keep class com.alaa.mohamedabdulazim.data.models.** { *; }
+-keepattributes Signature
+-keepattributes *Annotation*

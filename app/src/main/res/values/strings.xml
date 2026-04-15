@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">محمد عبد العظيم الطويل الإسلامي</string>
+    <string name="prayer_times">مواقيت الصلاة</string>
+    <string name="adhkar">الأذكار</string>
+    <string name="qibla">القبلة</string>
+    <string name="settings">الإعدادات</string>
+    <string name="next_prayer">الصلاة القادمة</string>
+    <string name="athan_playing">الأذان يعزف</string>
+    <string name="stop_athan">إيقاف الأذان</string>
+</resources>
