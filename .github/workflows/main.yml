@@ -3,6 +3,7 @@ name: Build Islamic App APK
 on:
   push:
     branches: [ main, master ]
+    tags: [ 'v*' ]
   pull_request:
     branches: [ main, master ]
   workflow_dispatch:
@@ -43,27 +44,24 @@ jobs:
           path: |
             ~/.gradle/caches
             ~/.gradle/wrapper
-          key: gradle-${{ hashFiles('**/*.gradle*','**/gradle-wrapper.properties') }}
+          key: gradle-${{ hashFiles('**/*.gradle','**/gradle-wrapper.properties') }}
           restore-keys: gradle-
 
       - name: Build Debug APK
         run: ./gradlew assembleDebug --no-daemon --stacktrace
 
-      - name: Upload Debug APK
+      - name: Upload APK as Artifact
         uses: actions/upload-artifact@v4
         with:
           name: islamic-app-debug
           path: app/build/outputs/apk/debug/app-debug.apk
           retention-days: 30
 
-      - name: Build Release APK
-        run: ./gradlew assembleRelease --no-daemon
-        continue-on-error: true
-
-      - name: Upload Release APK
-        uses: actions/upload-artifact@v4
+      - name: Upload APK to Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v1
         with:
-          name: islamic-app-release
-          path: app/build/outputs/apk/release/app-release-unsigned.apk
-          retention-days: 30
-        continue-on-error: true
+          files: app/build/outputs/apk/debug/app-debug.apk
+          name: ${{ github.ref_name }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
