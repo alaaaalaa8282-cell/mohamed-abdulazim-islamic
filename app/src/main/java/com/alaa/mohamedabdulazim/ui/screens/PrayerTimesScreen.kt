@@ -135,3 +135,24 @@ fun PrayerCard(prayer: PrayerTime) {
         }
     }
 }
+private fun fetchLocation(
+    context: android.content.Context,
+    onLocation: (Double, Double) -> Unit
+) {
+    val locationManager = context.getSystemService(
+        android.content.Context.LOCATION_SERVICE
+    ) as android.location.LocationManager
+
+    try {
+        val location = locationManager.getLastKnownLocation(
+            android.location.LocationManager.GPS_PROVIDER
+        ) ?: locationManager.getLastKnownLocation(
+            android.location.LocationManager.NETWORK_PROVIDER
+        )
+        if (location != null) {
+            onLocation(location.latitude, location.longitude)
+        }
+    } catch (e: SecurityException) {
+        e.printStackTrace()
+    }
+}
