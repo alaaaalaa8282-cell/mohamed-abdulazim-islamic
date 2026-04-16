@@ -1,4 +1,0 @@
-# Place your athan audio file here as: athan_default.mp3
-# The app will use this file for athan playback.
-# Recommended: Download athan audio from Islamic apps or websites
-# and rename it to athan_default.mp3
