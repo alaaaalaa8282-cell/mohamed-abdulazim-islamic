@@ -35,13 +35,7 @@ jobs:
       - name: Create athan audio placeholder
         run: |
           mkdir -p app/src/main/res/raw
-          python3 -c "
-# Minimal silent MP3 placeholder
-frame = bytes([0xFF,0xE3,0x18,0xC4,0x00,0x00,0x00,0x03,0x48,0x00,0x00,0x00,0x00,0x4C,0x41,0x4D,0x45,0x33,0x2E,0x31,0x30,0x30]) + bytes(396)
-with open('app/src/main/res/raw/athan_default.mp3','wb') as f:
-    [f.write(frame) for _ in range(50)]
-print('Created athan_default.mp3')
-"
+          dd if=/dev/zero bs=1024 count=50 of=app/src/main/res/raw/athan_default.mp3
 
       - name: Cache Gradle
         uses: actions/cache@v4
@@ -58,7 +52,7 @@ print('Created athan_default.mp3')
       - name: Upload Debug APK
         uses: actions/upload-artifact@v4
         with:
-          name: محمد-عبدالعظيم-الطويل-الاسلامي-debug
+          name: islamic-app-debug
           path: app/build/outputs/apk/debug/app-debug.apk
           retention-days: 30
 
@@ -69,7 +63,7 @@ print('Created athan_default.mp3')
       - name: Upload Release APK
         uses: actions/upload-artifact@v4
         with:
-          name: محمد-عبدالعظيم-الطويل-الاسلامي-release
+          name: islamic-app-release
           path: app/build/outputs/apk/release/app-release-unsigned.apk
           retention-days: 30
         continue-on-error: true
