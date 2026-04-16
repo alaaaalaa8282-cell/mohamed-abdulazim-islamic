@@ -2,22 +2,19 @@ name: Build Islamic App APK
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ "main" ]
   workflow_dispatch:
 
 jobs:
   build:
-    name: Build APK
     runs-on: ubuntu-latest
     permissions:
       contents: write
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
+      - uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
@@ -37,24 +34,33 @@ jobs:
           mkdir -p app/src/main/res/raw
           dd if=/dev/zero bs=1024 count=50 of=app/src/main/res/raw/athan_default.mp3
 
-      - name: Cache Gradle
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.gradle/caches
-            ~/.gradle/wrapper
-          key: gradle-${{ hashFiles('**/*.gradle','**/gradle-wrapper.properties') }}
-          restore-keys: gradle-
+      - name: Generate Keystore
+        run: |
+          keytool -genkeypair \
+            -alias mohamedabdulazim \
+            -keyalg RSA -keysize 2048 \
+            -validity 9125 \
+            -keystore islamic.jks \
+            -storepass islamic123 \
+            -keypass islamic123 \
+            -dname "CN=MohamedAbdulAzim,O=Islamic,C=EG" \
+            -noprompt
 
-      - name: Build Debug APK
-        run: ./gradlew assembleDebug --no-daemon --stacktrace
+      - name: Build APK
+        run: |
+          ./gradlew assembleRelease \
+            -Pandroid.injected.signing.store.file=${{ github.workspace }}/islamic.jks \
+            -Pandroid.injected.signing.store.password=islamic123 \
+            -Pandroid.injected.signing.key.alias=mohamedabdulazim \
+            -Pandroid.injected.signing.key.password=islamic123
 
-      - name: Release APK
-        uses: softprops/action-gh-release@v1
+      - name: Create Release with APK
+        uses: softprops/action-gh-release@v2
         with:
-          tag_name: latest
-          name: آخر إصدار
-          body: تطبيق محمد عبد العظيم الإسلامي
-          files: app/build/outputs/apk/debug/app-debug.apk
+          tag_name: "build-${{ github.run_number }}"
+          name: "مؤذن محمد عبد العظيم - إصدار ${{ github.run_number }}"
+          files: app/build/outputs/apk/release/*.apk
+          draft: false
+          prerelease: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
