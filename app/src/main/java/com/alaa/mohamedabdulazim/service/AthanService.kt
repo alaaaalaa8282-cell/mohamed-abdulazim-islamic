@@ -3,12 +3,14 @@ package com.alaa.mohamedabdulazim.service
 import android.app.*
 import android.content.*
 import android.media.*
+import android.net.Uri
 import android.os.*
 import android.telephony.TelephonyManager
 import androidx.core.app.NotificationCompat
 import com.alaa.mohamedabdulazim.IslamicApplication.Companion.ATHAN_CHANNEL_ID
 import com.alaa.mohamedabdulazim.MainActivity
 import com.alaa.mohamedabdulazim.R
+import com.alaa.mohamedabdulazim.data.local.AthanPrefs
 import com.alaa.mohamedabdulazim.data.local.PreferencesManager
 
 class AthanService : Service() {
@@ -26,6 +28,14 @@ class AthanService : Service() {
         const val NOTIF_ID = 1001
         var isPlaying = false
 
+        fun getAthanResId(key: String): Int = when (key) {
+            "elharm"        -> R.raw.adhan_elharm
+            "elhosary"      -> R.raw.adhan_elhosary
+            "mohamed_refat" -> R.raw.adhan_mohamed_refat
+            "abd_elbasit"   -> R.raw.abd_elbasit_abdel_samad
+            else            -> R.raw.athan_default
+        }
+
         fun start(ctx: Context, prayerName: String, prayerNameAr: String, athanKey: String) {
             val intent = Intent(ctx, AthanService::class.java).apply {
                 putExtra(EXTRA_PRAYER_NAME, prayerName)
@@ -42,23 +52,21 @@ class AthanService : Service() {
 
     override fun onCreate() {
         super.onCreate()
-        audioManager = getSystemService(AUDIO_SERVICE) as AudioManager
-        prefsManager = PreferencesManager(applicationContext)
-
+        audioManager  = getSystemService(AUDIO_SERVICE) as AudioManager
+        prefsManager  = PreferencesManager(applicationContext)
         val pm = getSystemService(POWER_SERVICE) as PowerManager
         wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "IslamicApp:AthanWakeLock")
         wakeLock?.acquire(10 * 60 * 1000L)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        val prayerName   = intent?.getStringExtra(EXTRA_PRAYER_NAME)   ?: "Prayer"
-        val prayerNameAr = intent?.getStringExtra(EXTRA_PRAYER_NAME_AR) ?: "الصلاة"
-        val athanKey     = intent?.getStringExtra(EXTRA_ATHAN_KEY)      ?: "default"
+        if (intent?.action == "STOP") { stopSelf(); return START_NOT_STICKY }
 
-        // Stop ZekrService to avoid audio conflict
+        val prayerName   = intent?.getStringExtra(EXTRA_PRAYER_NAME)    ?: "Prayer"
+        val prayerNameAr = intent?.getStringExtra(EXTRA_PRAYER_NAME_AR) ?: "الصلاة"
+
         stopService(Intent(this, ZekrService::class.java))
 
-        // Check active phone call
         val tm = getSystemService(TELEPHONY_SERVICE) as TelephonyManager
         if (tm.callState != TelephonyManager.CALL_STATE_IDLE) {
             stopSelf(); return START_NOT_STICKY
@@ -66,7 +74,7 @@ class AthanService : Service() {
 
         startForeground(NOTIF_ID, buildNotification(prayerNameAr))
         requestAudioFocus()
-        playAthan(athanKey)
+        playAthan()
         isPlaying = true
         return START_NOT_STICKY
     }
@@ -85,9 +93,11 @@ class AthanService : Service() {
         }
     }
 
-    private fun playAthan(athanKey: String) {
+    private fun playAthan() {
         try {
-            val settings = prefsManager.getSettings()
+            val settings   = prefsManager.getSettings()
+            val selectedKey = AthanPrefs.getSelectedKey(applicationContext)
+
             mediaPlayer?.release()
             mediaPlayer = MediaPlayer().apply {
                 setAudioAttributes(
@@ -97,10 +107,24 @@ class AthanService : Service() {
                         .build()
                 )
                 setVolume(settings.athanVolume, settings.athanVolume)
-                val resId = R.raw.athan_default
-                setDataSource(applicationContext, android.net.Uri.parse(
-                    "android.resource://${packageName}/$resId"
-                ))
+
+                if (selectedKey == "custom") {
+                    val customUri = AthanPrefs.getCustomUri(applicationContext)
+                    if (customUri != null) {
+                        setDataSource(applicationContext, Uri.parse(customUri))
+                    } else {
+                        // fallback لو مفيش صوت مخصص
+                        setDataSource(applicationContext, Uri.parse(
+                            "android.resource://${packageName}/${R.raw.athan_default}"
+                        ))
+                    }
+                } else {
+                    val resId = getAthanResId(selectedKey)
+                    setDataSource(applicationContext, Uri.parse(
+                        "android.resource://${packageName}/$resId"
+                    ))
+                }
+
                 prepare()
                 setOnCompletionListener { stopSelf() }
                 start()
@@ -138,9 +162,8 @@ class AthanService : Service() {
         mediaPlayer?.stop()
         mediaPlayer?.release()
         mediaPlayer = null
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
             focusRequest?.let { audioManager.abandonAudioFocusRequest(it) }
-        }
         wakeLock?.release()
         super.onDestroy()
     }
