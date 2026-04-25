@@ -9,6 +9,7 @@ import android.os.Build
 import com.alaa.mohamedabdulazim.data.local.PreferencesManager
 import com.alaa.mohamedabdulazim.service.AthanService
 import com.alaa.mohamedabdulazim.service.ZekrService
+import com.alaa.mohamedabdulazim.ui.athan.AthanScreenActivity
 
 class AlarmReceiver : BroadcastReceiver() {
 
@@ -52,10 +53,19 @@ class AlarmReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         when (intent.action) {
             ACTION_ATHAN -> {
-                val prayerName   = intent.getStringExtra(EXTRA_PRAYER_NAME)   ?: return
-                val prayerNameAr = intent.getStringExtra(EXTRA_PRAYER_AR)     ?: return
-                val athanKey     = intent.getStringExtra(EXTRA_ATHAN_KEY)     ?: "default"
+                val prayerName   = intent.getStringExtra(EXTRA_PRAYER_NAME) ?: return
+                val prayerNameAr = intent.getStringExtra(EXTRA_PRAYER_AR)   ?: return
+                val athanKey     = intent.getStringExtra(EXTRA_ATHAN_KEY)   ?: "default"
+
+                // شغّل سيرفيس الأذان
                 AthanService.start(context, prayerName, prayerNameAr, athanKey)
+
+                // افتح شاشة الأذان الكاملة
+                val screenIntent = Intent(context, AthanScreenActivity::class.java).apply {
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                    putExtra(AthanService.EXTRA_PRAYER_NAME_AR, prayerNameAr)
+                }
+                context.startActivity(screenIntent)
             }
             ACTION_ZEKR -> {
                 val prefs = PreferencesManager(context)
