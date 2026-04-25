@@ -52,6 +52,13 @@ class PreferencesManager(context: Context) {
         _settingsFlow.value = settings
     }
 
+    // === Custom audio URI per prayer ===
+    fun getCustomAthanUri(prayerKey: String): String? =
+        prefs.getString("custom_uri_$prayerKey", null)
+
+    fun saveCustomAthanUri(prayerKey: String, uri: String) =
+        prefs.edit().putString("custom_uri_$prayerKey", uri).apply()
+
     fun getZekrIndex(): Int = prefs.getInt("zekr_index", 0)
     fun saveZekrIndex(i: Int) = prefs.edit().putInt("zekr_index", i).apply()
 
