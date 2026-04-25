@@ -1,69 +1,77 @@
-package com.alaa.mohamedabdulazim.ui.athan
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center_horizontal"
+    android:background="#1B3A2D"
+    android:layoutDirection="rtl"
+    android:padding="24dp">
 
-import android.app.KeyguardManager
-import android.os.*
-import android.view.WindowManager
-import android.widget.Button
-import android.widget.ImageView
-import android.widget.TextView
-import androidx.appcompat.app.AppCompatActivity
-import com.alaa.mohamedabdulazim.R
-import com.alaa.mohamedabdulazim.service.AthanService
+    <ImageView
+        android:id="@+id/iv_mosque_top"
+        android:layout_width="90dp"
+        android:layout_height="90dp"
+        android:src="@drawable/ic_mosque"
+        android:tint="#C9A84C"
+        android:layout_marginTop="32dp" />
 
-class AthanScreenActivity : AppCompatActivity() {
+    <ImageView
+        android:id="@+id/iv_father_photo"
+        android:layout_width="110dp"
+        android:layout_height="110dp"
+        android:src="@drawable/ic_mosque"
+        android:scaleType="centerCrop"
+        android:layout_marginTop="16dp" />
 
-    private val handler = Handler(Looper.getMainLooper())
+    <TextView
+        android:id="@+id/tv_prayer_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="الفجر"
+        android:textColor="#C9A84C"
+        android:textSize="52sp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:layout_marginTop="16dp" />
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
+    <TextView
+        android:id="@+id/tv_athan_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="حان وقت الصلاة"
+        android:textColor="#FFFFFF"
+        android:textSize="22sp"
+        android:gravity="center"
+        android:layout_marginTop="8dp" />
 
-        // اظهر على شاشة القفل
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
-            setShowWhenLocked(true)
-            setTurnScreenOn(true)
-            val km = getSystemService(KEYGUARD_SERVICE) as KeyguardManager
-            km.requestDismissKeyguard(this, null)
-        } else {
-            @Suppress("DEPRECATION")
-            window.addFlags(
-                WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED or
-                WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON  or
-                WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON  or
-                WindowManager.LayoutParams.FLAG_DISMISS_KEYGUARD
-            )
-        }
+    <TextView
+        android:id="@+id/tv_father_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="إهداء إلى روح والدي\nمحمد عبد العظيم الطويل"
+        android:textColor="#8BAF8B"
+        android:textSize="14sp"
+        android:gravity="center"
+        android:lineSpacingExtra="4dp"
+        android:layout_marginTop="12dp" />
 
-        setContentView(R.layout.activity_athan_screen)
+    <!-- فراغ يدفع الزرار للأسفل -->
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
 
-        val prayerNameAr = intent.getStringExtra(AthanService.EXTRA_PRAYER_NAME_AR) ?: "الصلاة"
+    <Button
+        android:id="@+id/btn_stop_athan"
+        android:layout_width="220dp"
+        android:layout_height="56dp"
+        android:text="إيقاف الأذان"
+        android:textSize="18sp"
+        android:backgroundTint="#C9A84C"
+        android:textColor="#1B3A2D"
+        android:textStyle="bold"
+        android:layout_marginBottom="48dp" />
 
-        findViewById<TextView>(R.id.tv_prayer_name).text  = prayerNameAr
-        findViewById<TextView>(R.id.tv_athan_label).text  = "حان وقت صلاة $prayerNameAr"
-
-        // صورة الوالد — تأكد إن عندك ملف father_photo.jpg في res/drawable
-        try {
-            findViewById<ImageView>(R.id.iv_father_photo)
-                .setImageResource(R.drawable.father_photo)
-        } catch (e: Exception) {
-            // لو الصورة مش موجودة هيعرض أيقونة المسجد تلقائياً من الـ XML
-        }
-
-        findViewById<Button>(R.id.btn_stop_athan).setOnClickListener {
-            stopAndClose()
-        }
-
-        // إغلاق تلقائي بعد 10 دقايق
-        handler.postDelayed({ stopAndClose() }, 10 * 60 * 1000L)
-    }
-
-    private fun stopAndClose() {
-        AthanService.stop(this)
-        handler.removeCallbacksAndMessages(null)
-        finish()
-    }
-
-    override fun onDestroy() {
-        handler.removeCallbacksAndMessages(null)
-        super.onDestroy()
-    }
-}
+</LinearLayout>
