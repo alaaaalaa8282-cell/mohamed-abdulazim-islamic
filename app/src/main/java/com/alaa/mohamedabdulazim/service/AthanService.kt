@@ -28,7 +28,6 @@ class AthanService : Service() {
         const val NOTIF_ID = 1001
         var isPlaying = false
 
-        // تحويل الـ key لـ resource id
         fun getResId(athanKey: String): Int = when (athanKey) {
             "elharm"        -> R.raw.adhan_elharm
             "elhosary"      -> R.raw.adhan_elhosary
@@ -99,41 +98,39 @@ class AthanService : Service() {
     }
 
     private fun playAthan(athanKey: String, prayerKey: String) {
+        if (athanKey == "silent") { stopSelf(); return }
+
         try {
             val volume = prefsManager.getSettings().athanVolume
             mediaPlayer?.release()
-            mediaPlayer = MediaPlayer().apply {
-                setAudioAttributes(
-                    AudioAttributes.Builder()
-                        .setUsage(AudioAttributes.USAGE_ALARM)
-                        .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-                        .build()
-                )
-                setVolume(volume, volume)
 
-                if (athanKey == "custom") {
-                    // جرب صوت مخصص للصلاة دي الأول، لو مفيش جرب العام
-                    val uri = prefsManager.getCustomAthanUri(prayerKey)
-                        ?: prefsManager.getCustomAthanUri("all")
-                    if (uri != null) {
+            mediaPlayer = if (athanKey == "custom") {
+                val uri = prefsManager.getCustomAthanUri(prayerKey)
+                    ?: prefsManager.getCustomAthanUri("all")
+                if (uri != null) {
+                    MediaPlayer().apply {
+                        setAudioAttributes(
+                            AudioAttributes.Builder()
+                                .setUsage(AudioAttributes.USAGE_ALARM)
+                                .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                                .build()
+                        )
                         setDataSource(applicationContext, Uri.parse(uri))
-                    } else {
-                        // fallback للافتراضي
-                        setDataSource(applicationContext, Uri.parse(
-                            "android.resource://${packageName}/${R.raw.athan_default}"
-                        ))
+                        prepare()
                     }
                 } else {
-                    val resId = getResId(athanKey)
-                    setDataSource(applicationContext, Uri.parse(
-                        "android.resource://${packageName}/$resId"
-                    ))
+                    MediaPlayer.create(applicationContext, R.raw.athan_default)
                 }
+            } else {
+                MediaPlayer.create(applicationContext, getResId(athanKey))
+            }
 
-                prepare()
+            mediaPlayer?.apply {
+                setVolume(volume, volume)
                 setOnCompletionListener { stopSelf() }
                 start()
             }
+
         } catch (e: Exception) {
             stopSelf()
         }
