@@ -331,7 +331,7 @@ fun SettingsScreen(vm: SettingsViewModel = viewModel()) {
                         "الفاصل الزمني: ${settings.zekrIntervalMinutes} دقيقة",
                         color = IslamicGreenDark, fontSize = 14.sp
                     )
-                    val intervals = listOf(15, 30, 60, 120)
+                    val intervals = listOf(1,, 10, 15, 30, 60, 120)
                     Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         intervals.forEach { mins ->
                             FilterChip(
