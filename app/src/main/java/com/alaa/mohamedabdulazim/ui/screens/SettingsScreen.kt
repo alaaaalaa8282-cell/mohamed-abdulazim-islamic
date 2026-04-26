@@ -45,6 +45,7 @@ private val ATHAN_OPTIONS = listOf(
     "elhosary"      to "أذان الحصري",
     "mohamed_refat" to "أذان محمد رفعت",
     "abd_elbasit"   to "عبد الباسط عبد الصمد",
+    "silent"        to "🔇 صامت (بدون أذان)",
     "custom"        to "📂 صوت من هاتفك"
 )
 
