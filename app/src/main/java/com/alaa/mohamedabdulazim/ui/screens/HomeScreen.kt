@@ -68,7 +68,11 @@ fun HomeScreen(vm: PrayerViewModel = viewModel()) {
     }
 
     LaunchedEffect(Unit) {
-        val fineGranted = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+    val fineGranted = ContextCompat.checkSelfPermission(
+        context, Manifest.permission.ACCESS_FINE_LOCATION
+    ) == PackageManager.PERMISSION_GRANTED
+
+    if (prayers.isEmpty()) {
         if (fineGranted) {
             fetchLocation(context) { lat, lng -> vm.fetchPrayerTimes(lat, lng) }
         } else {
@@ -78,6 +82,7 @@ fun HomeScreen(vm: PrayerViewModel = viewModel()) {
             ))
         }
     }
+}
 
     Column(modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())) {
 
