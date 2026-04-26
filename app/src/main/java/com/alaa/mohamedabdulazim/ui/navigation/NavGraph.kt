@@ -14,17 +14,19 @@ import com.alaa.mohamedabdulazim.ui.theme.IslamicGold
 import com.alaa.mohamedabdulazim.ui.theme.IslamicGreen
 
 sealed class Screen(val route: String, val titleAr: String, val icon: ImageVector) {
-    object Home       : Screen("home",       "الرئيسية",  Icons.Filled.Home)
-    object Prayer     : Screen("prayer",     "المواقيت",  Icons.Filled.AccessTime)
-    object Adhkar     : Screen("adhkar",     "الأذكار",   Icons.Filled.MenuBook)
-    object Qibla      : Screen("qibla",      "القبلة",    Icons.Filled.Explore)
-    object Settings   : Screen("settings",   "الإعدادات", Icons.Filled.Settings)
+    object Home     : Screen("home",     "الرئيسية",  Icons.Filled.Home)
+    object Quran    : Screen("quran",    "القرآن",    Icons.Filled.MenuBook)
+    object Adhkar   : Screen("adhkar",   "الأذكار",   Icons.Filled.AutoStories)
+    object Qibla    : Screen("qibla",    "القبلة",    Icons.Filled.Explore)
+    object Settings : Screen("settings", "الإعدادات", Icons.Filled.Settings)
 }
 
 @Composable
 fun AppNavGraph() {
     val navController = rememberNavController()
-    val screens = listOf(Screen.Home, Screen.Prayer, Screen.Adhkar, Screen.Qibla, Screen.Settings)
+    val screens = listOf(
+        Screen.Home, Screen.Quran, Screen.Adhkar, Screen.Qibla, Screen.Settings
+    )
 
     Scaffold(
         bottomBar = {
@@ -40,7 +42,9 @@ fun AppNavGraph() {
                         selected = selected,
                         onClick  = {
                             navController.navigate(screen.route) {
-                                popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                                popUpTo(navController.graph.findStartDestination().id) {
+                                    saveState = true
+                                }
                                 launchSingleTop = true
                                 restoreState    = true
                             }
@@ -50,9 +54,9 @@ fun AppNavGraph() {
                         colors = NavigationBarItemDefaults.colors(
                             selectedIconColor   = IslamicGold,
                             selectedTextColor   = IslamicGold,
-                            unselectedIconColor = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.7f),
-                            unselectedTextColor = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.7f),
-                            indicatorColor      = IslamicGreen.copy(alpha = 0.0f)
+                            unselectedIconColor = androidx.compose.ui.graphics.Color.White.copy(0.7f),
+                            unselectedTextColor = androidx.compose.ui.graphics.Color.White.copy(0.7f),
+                            indicatorColor      = IslamicGreen.copy(0.0f)
                         )
                     )
                 }
@@ -60,12 +64,12 @@ fun AppNavGraph() {
         }
     ) { padding ->
         NavHost(
-            navController = navController,
+            navController    = navController,
             startDestination = Screen.Home.route,
-            modifier = Modifier.padding(padding)
+            modifier         = Modifier.padding(padding)
         ) {
             composable(Screen.Home.route)     { HomeScreen() }
-            composable(Screen.Prayer.route)   { PrayerTimesScreen() }
+            composable(Screen.Quran.route)    { QuranScreen() }
             composable(Screen.Adhkar.route)   { AdhkarScreen() }
             composable(Screen.Qibla.route)    { QiblaScreen() }
             composable(Screen.Settings.route) { SettingsScreen() }
