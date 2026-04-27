@@ -19,11 +19,15 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.googlefonts.Font
+import androidx.compose.ui.text.googlefonts.GoogleFont
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.alaa.mohamedabdulazim.R
 import com.alaa.mohamedabdulazim.data.repository.Ayah
 import com.alaa.mohamedabdulazim.data.repository.Surah
 import com.alaa.mohamedabdulazim.ui.theme.IslamicGold
@@ -31,16 +35,25 @@ import com.alaa.mohamedabdulazim.ui.theme.IslamicGreen
 import com.alaa.mohamedabdulazim.ui.theme.IslamicGreenDark
 import com.alaa.mohamedabdulazim.viewmodel.QuranViewModel
 
+// خط قرآني من Google Fonts
+private val provider = GoogleFont.Provider(
+    providerAuthority = "com.google.android.gms.fonts",
+    providerPackage   = "com.google.android.gms",
+    certificates      = R.array.com_google_android_gms_fonts_certs
+)
+
+private val quranFont = FontFamily(
+    Font(googleFont = GoogleFont("Amiri"), fontProvider = provider)
+)
+
 private fun toArabicNumber(n: Int): String {
     val arabic = mapOf('0' to '٠','1' to '١','2' to '٢','3' to '٣',
         '4' to '٤','5' to '٥','6' to '٦','7' to '٧','8' to '٨','9' to '٩')
     return n.toString().map { arabic[it] ?: it }.joinToString("")
 }
 
-// تقسيم الآيات لصفحات (15 آية في الصفحة)
-private fun splitToPages(ayahs: List<Ayah>, pageSize: Int = 15): List<List<Ayah>> {
-    return ayahs.chunked(pageSize)
-}
+private fun splitToPages(ayahs: List<Ayah>, pageSize: Int = 15): List<List<Ayah>> =
+    ayahs.chunked(pageSize)
 
 @Composable
 fun QuranScreen(vm: QuranViewModel = viewModel()) {
@@ -90,7 +103,8 @@ private fun SurahListScreen(
                 "القرآن الكريم",
                 color      = IslamicGold,
                 fontSize   = 22.sp,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                fontFamily = quranFont
             )
         }
 
@@ -156,7 +170,8 @@ private fun SurahItem(surah: Surah, cached: Boolean, onClick: () -> Unit) {
                 surah.name,
                 color      = IslamicGreenDark,
                 fontSize   = 18.sp,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                fontFamily = quranFont
             )
             Text(
                 "${surah.numberOfAyahs} آية · ${surah.type}",
@@ -185,7 +200,7 @@ private fun SurahReaderScreen(
     error: String?,
     onBack: () -> Unit
 ) {
-    val pages = remember(ayahs) { splitToPages(ayahs) }
+    val pages      = remember(ayahs) { splitToPages(ayahs) }
     val pagerState = rememberPagerState(pageCount = { if (pages.isEmpty()) 1 else pages.size })
 
     Column(Modifier.fillMaxSize().background(Color(0xFFFDF8F0))) {
@@ -205,6 +220,7 @@ private fun SurahReaderScreen(
                 color      = IslamicGold,
                 fontSize   = 20.sp,
                 fontWeight = FontWeight.Bold,
+                fontFamily = quranFont,
                 modifier   = Modifier.weight(1f),
                 textAlign  = TextAlign.Center
             )
@@ -244,19 +260,17 @@ private fun SurahReaderScreen(
 
                 // الصفحات
                 HorizontalPager(
-                    state    = pagerState,
-                    modifier = Modifier.weight(1f),
-                    reverseLayout = true // من اليمين لليسار زي المصحف
+                    state         = pagerState,
+                    modifier      = Modifier.weight(1f),
+                    reverseLayout = true
                 ) { pageIndex ->
-                    val pageAyahs = pages[pageIndex]
+                    val pageAyahs    = pages[pageIndex]
                     val showBismillah = pageIndex == 0
                             && surah.number != 1
                             && surah.number != 9
 
                     Box(
-                        Modifier
-                            .fillMaxSize()
-                            .padding(16.dp)
+                        Modifier.fillMaxSize().padding(16.dp)
                     ) {
                         Card(
                             modifier  = Modifier.fillMaxSize(),
@@ -265,30 +279,26 @@ private fun SurahReaderScreen(
                             elevation = CardDefaults.cardElevation(3.dp)
                         ) {
                             Column(
-                                Modifier
-                                    .fillMaxSize()
-                                    .padding(20.dp),
+                                Modifier.fillMaxSize().padding(20.dp),
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
-                                // البسملة في أول صفحة بس
                                 if (showBismillah) {
                                     Text(
                                         "بِسْمِ اللَّهِ الرَّحْمَٰنِ الرَّحِيمِ",
                                         color      = IslamicGold,
                                         fontSize   = 18.sp,
                                         fontWeight = FontWeight.Bold,
+                                        fontFamily = quranFont,
                                         textAlign  = TextAlign.Center,
-                                        modifier   = Modifier
-                                            .fillMaxWidth()
-                                            .padding(bottom = 16.dp)
+                                        modifier   = Modifier.fillMaxWidth()
+                                            .padding(bottom = 12.dp)
                                     )
                                     Divider(
                                         color    = IslamicGold.copy(0.3f),
-                                        modifier = Modifier.padding(bottom = 16.dp)
+                                        modifier = Modifier.padding(bottom = 12.dp)
                                     )
                                 }
 
-                                // نص الصفحة
                                 Text(
                                     text = pageAyahs.joinToString(" ") { ayah ->
                                         "${ayah.text} ﴿${toArabicNumber(ayah.numberInSurah)}﴾"
@@ -296,8 +306,8 @@ private fun SurahReaderScreen(
                                     color      = Color(0xFF1A1A1A),
                                     fontSize   = 22.sp,
                                     textAlign  = TextAlign.Right,
-                                    lineHeight = 44.sp,
-                                    fontWeight = FontWeight.Medium,
+                                    lineHeight = 46.sp,
+                                    fontFamily = quranFont,
                                     modifier   = Modifier.fillMaxWidth()
                                 )
                             }
@@ -307,38 +317,35 @@ private fun SurahReaderScreen(
 
                 // أسهم التنقل
                 Row(
-                    Modifier
-                        .fillMaxWidth()
+                    Modifier.fillMaxWidth()
                         .background(IslamicGreen.copy(0.05f))
                         .padding(horizontal = 24.dp, vertical = 8.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment     = Alignment.CenterVertically
                 ) {
-                    // السابقة (يسار = صفحة أعلى رقماً)
                     IconButton(
-                        onClick  = { },
-                        enabled  = pagerState.currentPage < pages.size - 1
+                        onClick = { },
+                        enabled = pagerState.currentPage < pages.size - 1
                     ) {
                         Icon(
                             Icons.Filled.ArrowBack,
-                            contentDescription = "الصفحة التالية",
+                            contentDescription = "التالي",
                             tint = if (pagerState.currentPage < pages.size - 1)
                                 IslamicGreen else IslamicGreen.copy(0.3f)
                         )
                     }
 
-                    // نقاط الصفحات (لو أقل من 10 صفحات)
                     if (pages.size <= 10) {
                         Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                             repeat(pages.size) { i ->
                                 Box(
-                                    Modifier
-                                        .size(if (i == pagerState.currentPage) 10.dp else 6.dp)
-                                        .background(
-                                            if (i == pagerState.currentPage) IslamicGreen
-                                            else IslamicGreen.copy(0.3f),
-                                            RoundedCornerShape(50)
-                                        )
+                                    Modifier.size(
+                                        if (i == pagerState.currentPage) 10.dp else 6.dp
+                                    ).background(
+                                        if (i == pagerState.currentPage) IslamicGreen
+                                        else IslamicGreen.copy(0.3f),
+                                        RoundedCornerShape(50)
+                                    )
                                 )
                             }
                         }
@@ -350,14 +357,13 @@ private fun SurahReaderScreen(
                         )
                     }
 
-                    // التالية (يمين = صفحة أقل رقماً)
                     IconButton(
-                        onClick  = { },
-                        enabled  = pagerState.currentPage > 0
+                        onClick = { },
+                        enabled = pagerState.currentPage > 0
                     ) {
                         Icon(
                             Icons.Filled.ArrowForward,
-                            contentDescription = "الصفحة السابقة",
+                            contentDescription = "السابق",
                             tint = if (pagerState.currentPage > 0)
                                 IslamicGreen else IslamicGreen.copy(0.3f)
                         )
